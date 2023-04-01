@@ -1,0 +1,50 @@
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+static const int RXPin = 4, TXPin = 3;
+static const uint32_t GPSBaud = 9600;
+// The TinyGPS++ object
+TinyGPSPlus gps;
+// The serial connection to the GPS device
+SoftwareSerial ss(RXPin, TXPin);
+
+float distance;
+float lat_new;
+float lng_new;
+float lat_old = 1297577.8;
+float lng_old = 7916068.5;
+float x;
+float y;
+float min_dist;
+float final_dist=0;
+
+void setup(){
+ Serial.begin(9600);
+ ss.begin(GPSBaud);
+}
+
+
+
+void loop(){
+ // This sketch displays information every time a new sentence is correctly encoded.
+ while (ss.available() > 0)
+ {
+   gps.encode(ss.read());
+   if (gps.location.isUpdated())
+   {
+     Serial.print("Latitude= "); 
+     lat_new = (gps.location.lat())*100000;
+     Serial.print(lat_new, 6);
+     Serial.print(" Longitude= ");
+     lng_new = (gps.location.lng())*100000;
+     Serial.println(lng_new, 6);
+     x = lat_old-lat_new;
+     y = lng_old-lng_new;
+     lat_old=lat_new;
+     lng_old=lng_new;
+     min_dist = sqrt(x*x+y*y);
+     final_dist = final_dist+min_dist;
+   }
+ }
+ Serial.println(final_dist);
+ delay(100);
+}
